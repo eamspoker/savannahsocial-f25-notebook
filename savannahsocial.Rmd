@@ -1,0 +1,882 @@
+---
+title: "Savannah Social RMarkdown"
+output:
+  pdf_document:
+  html_document:
+    toc: yes
+    toc_float: yes
+    code_folding: show
+urlcolor: blue
+---
+# Savannah Social Data Analysis
+### By: Emily Amspoker, Fall 2025
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*.
+
+## Importing Libraries
+
+```{r}
+library(sf)
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(plotly)
+library(dplyr)
+library(foreign)
+library(ggiraph)
+library(patchwork)
+library(gender)
+library (osmdata)
+library(httr)
+library(xmlr)
+library(xml2)
+library(jsonlite)
+library(tidytext)
+library(tm)
+library(SnowballC)
+library(wordcloud)
+
+```
+
+## Importing and Cleaning Data
+
+#### Importing Demographic Data
+```{r}
+# convert time at residence/in Savannah to double
+demographic_data <- read_csv("Data1_DemographicData.csv", show_col_types = FALSE) %>% 
+  mutate (ID = `ID Number`, 
+          residence_time = as.double(str_extract(`How long have you lived at your residence?`, "[^ years]*")), 
+          savannah_time =  as.double(str_extract(`How long have you lived in Savannah?`, "[^ years]*") )) %>%
+  select(-`How long have you lived at your residence?`, -`How long have you lived in Savannah?`)
+```
+
+
+#### Displaying Distributions of Relevant Demographic Data (Percentages or Average/Min/Max/Standard Deviation)
+```{r}
+demographic_data_for_table <- select(demographic_data, -Timestamp, -ID, -`ID Number`, -City, -State, - `Cross Street`, -`Accuracy`, -`Longitude`, -`Latitude`, -`How many people live in your home with you?`)
+
+print_stats <- function(variable) {
+  if (is.character(demographic_data[[variable]]))
+  {
+    factor_version <- factor(demographic_data[[variable]])
+    print(paste(variable, " MEAN"))
+    print(mean(as.numeric(factor_version) - 1))
+    counts <- demographic_data %>% group_by_at(variable) %>%
+      summarize(count=n(), .groups="drop") %>%
+      mutate(percent = 100*(count/nrow(demographic_data)))
+    print(counts)
+
+    
+  } else {
+    print(paste(variable," STATS"))
+    print(paste(mean(demographic_data[[variable]]) , " & ", min(demographic_data[[variable]]) , "-" , max(demographic_data[[variable]]) , " (st. dev. = " , sd(demographic_data[[variable]]) , ")", sep=""))
+    
+  }
+}
+nrow(demographic_data)
+for (variable in names(demographic_data_for_table))
+{
+  print_stats(variable)
+}
+
+
+```
+
+#### Importing Social Network Data, Open-Ended Data
+```{r}
+
+social_network_data <- read_excel("Data2_SocialNetworkData_CA.xlsx")
+open_ended_data <- read_excel("Data3_OpenResponse.xlsx")
+
+# Group the "Friend" and "Frienship" category together
+gis_data <- read.dbf("AllPoints_V11.dbf", as.is=TRUE) %>%
+             mutate(RELATIONSH = ifelse(RELATIONSH=="Friend", "Friendship", RELATIONSH))
+gis_data
+
+all_data <- left_join(left_join(demographic_data, social_network_data, by="ID Number"), open_ended_data, by="ID Number")
+all_data
+```
+
+#### Displaying Counts of POIs by Relationships
+
+```{r}
+poi_counts_by_relationships <- gis_data %>%
+                                group_by(RELATIONSH) %>%
+                                summarize (poi_count = n()) %>%
+                                select(RELATIONSH, poi_count)
+poi_counts_by_relationships
+```
+
+#### Importing Map Data
+```{r}
+sav_map <- read_sf("ZIP_Codes.geojson")
+```
+
+## Adding New Columns
+
+### Adding Guesses for Gender Based on Name, Relationship Gender Variable
+
+```{r}
+map_gender_relationships <- function(participant_gender, relationship_gender) {
+  if (participant_gender == "Female" && relationship_gender == "F")
+  {
+    "F-F"
+  } else if (participant_gender == "Male" && relationship_gender == "M") {
+    "M-M"
+  } else if (participant_gender == "Female" && relationship_gender == "M")
+  {
+    "F-M"
+  } else if (participant_gender == "Male" && relationship_gender == "F")
+  {
+    "M-F"
+  } else if (relationship_gender == "M")
+  {
+    "N-M"
+  } else if (relationship_gender == "F") {
+    "N-F"
+  } else if (participant_gender == "Female") {
+    "F-U"
+  } else if (participant_gender == "Male") {
+    "M-U"
+  } else {
+    "N-U"
+  }
+}
+
+
+map_gender_guess <- function(relationship_gender, person) {
+  name <- unlist(strsplit(person, split=' '))[1]
+  name <- unlist(strsplit(name, split=')'))[1]
+  guess <- gender(name, method="ssa")
+  if (nrow(guess) > 0 && relationship_gender == "Undefined from relationship")
+  {
+    if (guess$proportion_female > 0.99)
+    {
+      "F"
+    } else if (guess$proportion_male > 0.99) {
+      "M"
+    } else {
+      relationship_gender
+    }
+  }
+  else {
+    relationship_gender
+  }
+}
+
+
+gis_demographic_data <- gis_data %>% 
+                  left_join(select(demographic_data, ID, `What gender do you identify with?`), 
+                            by = c("SOCIALNE_1" = "ID"))
+gis_demographic_data
+
+gis_gender_data <- gis_demographic_data %>%
+                  mutate(relationship_gender = unlist(pmap(list(`What gender do you identify with?`, GENDER), map_gender_relationships)))
+
+
+gis_gender_data_guess <- gis_demographic_data %>%
+                  mutate(gender_guess = unlist(pmap(list(GENDER, PERSON_WIT), map_gender_guess))) %>%
+                   mutate(relationship_gender = unlist(pmap(list(`What gender do you identify with?`, gender_guess), map_gender_relationships)))
+
+gis_gender_data_guess
+
+
+```
+
+#### Visualization of Relationship Gender Variable, with Map and Relationship Type
+
+```{r}
+library(RColorBrewer)
+
+gis_gender_data_guess_filtered <- gis_gender_data_guess %>% filter(LAT > 31.0 & LAT < 32.7)
+gis_gender_data_guess %>%
+  ggplot(aes(x=RELATIONSH, fill=relationship_gender)) +
+  scale_fill_brewer(palette = "Dark2") +
+  geom_bar(position = "dodge") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0))
+
+
+p1 <- gis_gender_data_guess_filtered %>%
+  filter(relationship_gender=="F-F" | relationship_gender=="F-M" | relationship_gender=="M-F" | relationship_gender=="M-M") %>%
+  ggplot(aes(x=RELATIONSH, fill=relationship_gender, data_id=relationship_gender)) +
+   scale_fill_brewer(palette = "Dark2") +
+  geom_bar_interactive(position = "dodge") +  theme(axis.text.x = element_text(angle = 90, vjust = 0))
+
+
+p2 <- sav_map %>%
+  ggplot() +
+  geom_sf() +
+  geom_point_interactive(data=gis_gender_data_guess_filtered %>% filter(relationship_gender == "F-F" | relationship_gender == "F-M" |relationship_gender == "M-F"  | relationship_gender == "M-M"), alpha=0.5, aes(x=LON, y=LAT, color=relationship_gender, data_id=relationship_gender, tooltip = UNIQUE)) +
+   scale_color_brewer(palette = "Dark2") +  theme(axis.text.x = element_text(angle = 90, vjust = 0))
+
+
+hover_css <- "
+  filter: brightness(75%);
+  cursor: pointer;
+  transition: all 0.5s ease-out;
+  filter: brightness(1.15);
+"
+
+
+combined_plot <- p1 / p2 + plot_layout(nrow = 2)
+
+interactive_plot <- girafe(ggobj = combined_plot) %>%
+                    girafe_options(
+                      opts_hover(css = hover_css),
+                     opts_hover_inv(css = "opacity:0.1; transition: all 0.2s ease-out;"),
+                     opts_sizing(rescale = TRUE)
+                    )
+
+interactive_plot
+
+htmltools::save_html(interactive_plot, "interactive_map.html")
+```
+
+#### Chi-Squared Tests and Mosaic Plots For Gender of Reported Relationships
+```{r}
+f_f <- sum(spend_time_guess$relationship_gender == "F-F")
+m_m <- sum(spend_time_guess$relationship_gender == "M-M")
+
+m_f <- sum(spend_time_guess$relationship_gender == "M-F")
+f_m <- sum(spend_time_guess$relationship_gender == "F-M")
+
+table <- as.table(rbind(c(m_m, m_f), c(f_m, f_f)))
+
+dimnames(table) <- list(gender = c("M", "F"),
+                    party = c("M", "F"))
+
+Xsq <- chisq.test(table)
+Xsq$observed   # observed counts (same as M)
+Xsq$expected   # expected counts under the null
+Xsq$residuals  # Pearson residuals
+Xsq$stdres     # standardized residuals
+Xsq$p.value
+
+mosaicplot(table, las = 1, shade=TRUE)
+
+f_f <- sum(more_places_guess$relationship_gender == "F-F")
+m_m <- sum(more_places_guess$relationship_gender == "M-M")
+
+m_f <- sum(more_places_guess$relationship_gender == "M-F")
+f_m <- sum(more_places_guess$relationship_gender == "F-M")
+
+table <- as.table(rbind(c(m_m, m_f), c(f_m, f_f)))
+
+dimnames(table) <- list(gender = c("M", "F"),
+                    party = c("M", "F"))
+
+Xsq <- chisq.test(table)
+Xsq$observed   # observed counts (same as M)
+Xsq$expected   # expected counts under the null
+Xsq$residuals  # Pearson residuals
+Xsq$stdres     # standardized residuals
+Xsq$p.value
+
+mosaicplot(table, las = 1, shade=TRUE)
+
+```
+
+#### Chi-Squared Tests and Mosaic Plots For Gender Coding of Open-Ended Questions 
+```{r}
+
+spend_time <- read_csv("Spend_Time_CLOSED_Coding.csv", show_col_types = FALSE)
+more_places <- read_csv("More_Places_CLOSED_Coding.csv", show_col_types = FALSE)
+
+spend_time_merged <- spend_time %>%
+  left_join(select(demographic_data, ID, `What gender do you identify with?`), by = "ID")
+more_places_merged <- more_places %>%
+  left_join(select(demographic_data, ID, `What gender do you identify with?`), by = "ID")
+
+filter(spend_time_merged, is.na(Code))
+spend_time_guess <- spend_time_merged %>%
+                  mutate(gender_guess = unlist(pmap(list(Code, Person), map_gender_guess))) %>%
+                   mutate(relationship_gender = unlist(pmap(list(`What gender do you identify with?`, gender_guess), map_gender_relationships)))
+
+spend_time_guess %>%
+   ggplot(aes(x=relationship_gender)) +
+   geom_bar(fill="darkblue") +
+   labs(title = "Relationships by Gender")
+
+spend_time_guess %>%
+   ggplot(aes(x=relationship_gender)) +
+   geom_bar(fill="darkblue") +
+   labs(title = "Relationships by Gender (Guess)")
+
+
+spend_time_guess
+
+total_participants <- nrow(demographic_data)-1
+
+f_f <- sum(spend_time_guess$relationship_gender == "F-F")
+m_m <- sum(spend_time_guess$relationship_gender == "M-M")
+
+m_f <- sum(spend_time_guess$relationship_gender == "M-F")
+f_m <- sum(spend_time_guess$relationship_gender == "F-M")
+
+spend_time_table <- as.table(rbind(c(m_m, m_f), c(f_m, f_f)))
+
+dimnames(spend_time_table) <- list(gender_relationship = c("M", "F"),
+                    gender_participant = c("M", "F"))
+
+Xsq <- chisq.test(spend_time_table)
+Xsq$observed   # observed counts (same as M)
+Xsq$expected   # expected counts under the null
+Xsq$residuals  # Pearson residuals
+Xsq$stdres     # standardized residuals
+Xsq$p.value
+
+mosaicplot(spend_time_table, las = 1, shade=TRUE)
+
+
+filter(more_places_merged, is.na(Gender))
+more_places_guess <- more_places_merged %>%
+                 mutate(gender_guess = unlist(pmap(list(Gender, Person), map_gender_guess))) %>%
+                   mutate(relationship_gender = unlist(pmap(list(`What gender do you identify with?`, gender_guess), map_gender_relationships)))
+more_places_guess %>%
+   ggplot(aes(x=relationship_gender)) +
+   geom_bar(fill="darkblue") +
+   labs(title = "Relationships by Gender")
+
+more_places_guess %>%
+   ggplot(aes(x=relationship_gender)) +
+   geom_bar(fill="darkblue") +
+   labs(title = "Relationships by Gender (Guess)")
+
+f_f <- sum(more_places_guess$relationship_gender == "F-F")
+m_m <- sum(more_places_guess$relationship_gender == "M-M")
+
+m_f <- sum(more_places_guess$relationship_gender == "M-F")
+f_m <- sum(more_places_guess$relationship_gender == "F-M")
+
+more_places_table <- as.table(rbind(c(m_m, m_f), c(f_m, f_f)))
+
+dimnames(more_places_table) <- list(gender_relationship = c("M", "F"),
+                    gender_participant = c("M", "F"))
+
+Xsq <- chisq.test(more_places_table)
+Xsq$observed   # observed counts (same as M)
+Xsq$expected   # expected counts under the null
+Xsq$residuals  # Pearson residuals
+Xsq$stdres     # standardized residuals
+Xsq$p.value
+
+mosaicplot(more_places_table, las = 1, shade=TRUE)
+
+
+
+
+```
+
+
+
+## Geocoding for Place Type Using OpenStreetMapData (OSM)
+
+#### Example Function for Looking Up OSM Type
+```{r}
+lookup_osm <- function (address, lat, lon) {
+  
+  url <- paste("http://nominatim.openstreetmap.org/search?format=json&q=", gsub(" ", "+", address), "&format=json", sep="")
+  
+  
+  place_type <- tryCatch({
+    res <- GET(url)
+    data <- content(res,"text")
+    if (!is.null(data)) {
+       place_data <- jsonlite::fromJSON(data)
+       toString(place_data$type)
+      }
+}, error = function(e) {
+    "ERROR"
+})
+
+
+ 
+  if (is.null(place_type) || place_type == "ERROR" )
+  {
+    url <- paste("http://nominatim.openstreetmap.org/reverse?format=json&lat=", lat, "&lon=", lon, "&zoom=18&addressdetails=1", sep="")
+    
+     place_type <- tryCatch({
+      res <- GET(url)
+      data <- content(res,"text")
+      if (!is.null(data)) {
+         place_data <- jsonlite::fromJSON(data)
+         place_data$type[1]
+      }
+      }, ERROR = function(e) {
+        "ERROR"
+      })
+  }
+
+  place_type
+
+  
+}
+
+```
+
+This is an example of how to run the above function, I chunked the data because otherwise it would time out occasionally. The rest of the notebook imports the osm_data.csv file, which has been computed using this code.
+```{}
+# replace the above line with ```{r} if you want to run this chunk
+
+ osm_data <- head(gis_gender_data_guess,1) %>%
+   mutate(place_type = unlist(pmap(list(ADDRESS_1, LAT, LON), lookup_osm)))
+ osm_data
+
+
+
+chunks <- ggplot2::cut_interval(1:nrow(gis_gender_data_guess), length=20, labels=FALSE)
+
+unique(chunks)
+
+for (i in unique(chunks))
+{
+
+  new_chunk <- gis_gender_data_guess[which(chunks==i),] %>%
+       mutate(place_type = unlist(pmap(list(ADDRESS_1, LAT, LON), lookup_osm)))
+
+  osm_data <- rbind(osm_data, new_chunk)
+}
+
+osm_data
+
+```
+
+#### Import OSM Place Type Data from File
+```{r}
+osm_data <- read.csv("osm_data.csv")
+osm_data
+```
+
+#### Example Visualization Using OSM Place Type
+```{r}
+library(RColorBrewer)
+
+filtered_osm <- osm_data  %>%
+  filter(place_type != "yes" & place_type != "unclassified" & place_type != "primary" & place_type != "secondary"  &  place_type != "tertiary" & place_type != "parking") %>%
+  mutate(place_type = ifelse(place_type=="residential" | place_type=="house", "residential or house", place_type),
+         RELATIONSH = ifelse(RELATIONSH=="Friend", "Friendship", RELATIONSH)) %>%
+  filter(place_type != "residential or house")
+
+top_7_place_types <- filtered_osm %>%
+  count(place_type, sort = TRUE) %>%
+  slice(1:7) %>% left_join(filtered_osm)
+
+
+p1 <- top_5_place_types %>%
+  ggplot(aes(x=RELATIONSH, fill=place_type, data_id=place_type)) +
+   scale_fill_brewer(palette = "Dark2") +
+  geom_bar_interactive(position = "dodge") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0))
+
+p2 <- sav_map %>%
+  ggplot() +
+  geom_sf() +
+  geom_point_interactive(data=top_5_place_types, alpha=0.5, aes(x=LON, y=LAT, color=place_type, data_id=place_type, tooltip = UNIQUE)) +
+   scale_color_brewer(palette = "Dark2") +
+   theme(axis.text.x = element_text(angle = 90, vjust = 0))
+
+
+
+hover_css <- "
+  filter: brightness(75%);
+  cursor: pointer;
+  transition: all 0.5s ease-out;
+  filter: brightness(1.15);
+"
+
+
+combined_plot <- p1 / p2 + plot_layout(nrow = 2)
+
+interactive_plot <- girafe(ggobj = combined_plot) %>%
+                    girafe_options(
+                      opts_hover(css = hover_css),
+                     opts_hover_inv(css = "opacity:0.1; transition: all 0.2s ease-out;"),
+                     opts_sizing(rescale = TRUE)
+                    )
+
+interactive_plot
+
+htmltools::save_html(interactive_plot, "interactive_map2.html")
+```
+
+
+## Earlier Exploratory Data Visualizations
+
+#### Gender Barcharts
+```{r}
+
+gis_gender_data %>%
+   ggplot(aes(x=relationship_gender)) +
+   geom_bar(fill="darkblue") +
+   labs(title = "Relationships by Gender")
+
+gis_gender_data_guess %>%
+   ggplot(aes(x=relationship_gender)) +
+   geom_bar(fill="darkblue") +
+   labs(title = "Relationships by Gender (Guess)")
+
+gis_gender_data_guess %>%
+   ggplot(aes(x=relationship_gender)) +
+   geom_bar(fill="darkblue") +
+   labs(title = "Relationships by Gender (Guess)")
+
+```
+
+#### Gender Maps (Non-Interactive)
+```{r}
+
+gis_gender_data_guess_filtered <- gis_gender_data_guess %>%  filter(LAT > 31.7 & LAT < 32.3 & LON>  -81.4 & LON < -80.9)
+
+gis_gender_data_guess_filtered 
+
+sav_map %>%
+  ggplot() +
+  geom_sf() +
+  geom_point(data=gis_gender_data_guess_filtered %>% filter(relationship_gender == "F-F" | relationship_gender == "F-M" |relationship_gender == "M-F"  | relationship_gender == "M-M"), alpha=0.5, aes(x=LON, y=LAT, color=relationship_gender, text=UNIQUE)) +
+  facet_grid(. ~ relationship_gender)
+
+sav_map %>%
+  ggplot() +
+  geom_sf() +
+  geom_point(data=gis_gender_data_guess %>% filter(relationship_gender == "F-F"), alpha=0.5, aes(x=LON, y=LAT, color=relationship_gender, text=UNIQUE))
+
+sav_map %>%
+  ggplot() +
+  geom_sf() +
+  geom_point(data=gis_gender_data_guess %>% filter(relationship_gender == "F-M"), alpha=0.5, aes(x=LON, y=LAT, color=relationship_gender, text=UNIQUE))
+
+
+sav_map %>%
+  ggplot() +
+  geom_sf() +
+  geom_point(data=gis_gender_data_guess %>% filter(relationship_gender == "M-F"), alpha=0.5, aes(x=LON, y=LAT, color=relationship_gender, text=UNIQUE))
+
+
+sav_map %>%
+  ggplot() +
+  geom_sf() +
+  geom_point(data=gis_gender_data_guess %>% filter(relationship_gender == "M-M"), alpha=0.5, aes(x=LON, y=LAT, color=relationship_gender, text=UNIQUE))
+
+```
+
+```{r}
+total_participants <- nrow(demographic_data)-1
+
+f_f <- sum(gis_gender_data_guess$relationship_gender == "F-F")
+m_m <- sum(gis_gender_data_guess$relationship_gender == "M-M")
+
+m_f <- sum(gis_gender_data_guess$relationship_gender == "M-F")
+f_m <- sum(gis_gender_data_guess$relationship_gender == "F-M")
+
+reported_relationships <- as.table(rbind(c(m_m, m_f), c(f_m, f_f)))
+
+dimnames(reported_relationships) <- list(gender_relationship = c("M", "F"),
+                    gender_participant = c("M", "F"))
+
+Xsq <- chisq.test(reported_relationships)
+Xsq$observed   # observed counts (same as M)
+Xsq$expected   # expected counts under the null
+Xsq$residuals  # Pearson residuals
+Xsq$stdres     # standardized residuals
+Xsq$p.value
+
+mosaicplot(reported_relationships, las = 1, shade=TRUE)
+demographic_data
+
+
+```
+
+#### Example of Attempted Age Coding With Visualization
+```{r}
+# Difficult to assume younger-older or older-younger for most relationships in the data
+map_age_relationships <- function(relationship) {
+  if (!is.na(relationship))
+ {
+    if (relationship == "Aunt" | relationship == "Father" | relationship == "Grandparent" | relationship == "Mother" | relationship == "Uncle" | relationship == "In Law")
+    {
+      "Y - O"
+  
+    } else if (relationship == "Daughter" | relationship == "Son" | relationship == "Niece" | relationship == "Nephew" | relationship == "Grandchild")
+    {
+      "O - Y"
+    } else if (relationship == "Family" | relationship == "Cousin" | relationship ==  "Husband" | relationship ==  "Wife" | relationship == "Brother" | relationship == "Sister" | relationship == "Boyfriend" |
+               relationship == "Boss" | relationship == "Brother" | relationship == "Brother in Law"  | relationship == "Church Relationship" | relationship == "Cousin"    | relationship ==  "Coworker"  | relationship == "Ex Partner" | relationship == "Friend" | relationship ==  "Group"  | relationship ==  "Partner"   | relationship == "Pastor" ){
+      "S - S"
+    }
+  
+  } else {
+      "UNDEFINED"
+  }
+}
+ gis_demographic_data
+ unique( gis_demographic_data$SOCIALNE_3)
+ 
+gis_age_data_guess <- gis_demographic_data %>%
+  mutate(age_guess = unlist(pmap(list(SOCIALNE_3), map_age_relationships))) 
+
+# one small discovery: no "girlfriend" relationship in the dataset
+filter(gis_age_data_guess, gis_age_data_guess$SOCIALNE_3 == "Girlfriend")
+
+gis_age_data_guess_filtered <- gis_age_data_guess %>%  filter(LAT > 31.7 & LAT < 32.3 & LON>  -81.4 & LON < -80.9)
+
+gis_age_data_guess_filtered 
+
+sav_map %>%
+  ggplot() +
+  geom_sf() +
+  geom_point(data=gis_age_data_guess_filtered %>% filter(age_guess != "UNDEFINED"), alpha=0.5, aes(x=LON, y=LAT, color=RELATIONSH, text=UNIQUE)) +
+  facet_grid(. ~ age_guess)
+
+sav_map %>%
+  ggplot() +
+  geom_sf() +
+  geom_point(data=gis_age_data_guess %>% filter(age_guess == "Y - O"), alpha=0.5, aes(x=LON, y=LAT, color=RELATIONSH, text=UNIQUE))
+
+sav_map %>%
+  ggplot() +
+  geom_sf() +
+  geom_point(data=gis_age_data_guess %>% filter(age_guess == "O - Y"), alpha=0.5, aes(x=LON, y=LAT, color=RELATIONSH, text=UNIQUE))
+
+
+sav_map %>%
+  ggplot() +
+  geom_sf() +
+  geom_point(data=gis_age_data_guess %>% filter(age_guess == "S - S"), alpha=0.5, aes(x=LON, y=LAT, color=RELATIONSH, text=UNIQUE))
+
+
+
+```
+
+#### Barchart About Various Ages
+```{r}
+all_data %>%
+   ggplot(aes(x=`What is your age range?`)) +
+   geom_bar(fill="darkblue") +
+   labs(title = "Participants by Age Range",
+        x = "Age Range", y = "Number of Participants")
+all_data$`What race/ethnicity do you identify with?`
+all_data %>%
+   ggplot(aes(x=`What race/ethnicity do you identify with?`)) +
+   geom_bar(fill="darkblue") +
+   labs(title = "Participants by Race",
+        x = "Gender", y = "Number of Participants")
+
+
+
+all_data %>%
+   ggplot(aes(fill=`Disabled Community?`, x=`What is your age range?`)) +
+   geom_bar() +
+   labs(title = "Participants by Age Range",
+        x = "Age Range", y = "Number of Participants")
+
+all_data %>%
+   ggplot(aes(fill=`LGBTQ+ Community?`, x=`What is your age range?`)) +
+   geom_bar() +
+   labs(title = "Participants by Age Range",
+        x = "Age Range", y = "Number of Participants")
+
+```
+
+```{r}
+# Exploratory data analysis: car ownership
+
+all_data %>%
+   ggplot(aes(x=`What is your age range?`, fill=`Do you drive?`)) +
+   geom_bar() +
+   labs(title = "Participants by Age Range, Grouped by Driving",
+        x = "Age Range", y = "Number of Participants")
+
+all_data %>%
+   ggplot(aes(x=`What is your age range?`, fill=`Do you own or have access to a car?`)) +
+   geom_bar() +
+   labs(title = "Participants by Age Range, Grouped by Car Ownership",
+        x = "Age Range", y = "Number of Participants")
+
+
+all_data %>%
+   ggplot(aes(x=`What race/ethnicity do you identify with?`, fill=`Do you drive?`)) +
+   geom_bar() +
+   labs(title = "Participants by Age Range, Grouped by Driving",
+        x = "Age Range", y = "Number of Participants")
+
+all_data %>%
+   ggplot(aes(x=`What race/ethnicity do you identify with?`, fill=`Do you own or have access to a car?`)) +
+   geom_bar() +
+   labs(title = "Participants by Age Range, Grouped by Car Ownership",
+        x = "Age Range", y = "Number of Participants")
+
+
+```
+
+#### Mosaic Plots on Demographics versus Driving
+```{r}
+
+race_and_driving_table <- table(all_data$`What race/ethnicity do you identify with?`, all_data$`Do you drive?`)
+mosaicplot(race_and_driving_table, las = 1, shade=TRUE, main="Participants by Race and Driving")
+
+race_and_car_table <- table(all_data$`What race/ethnicity do you identify with?`, all_data$`Do you own or have access to a car?`)
+mosaicplot(race_and_car_table, las = 1, shade=TRUE, main="Participants by Race and Car Ownership")
+
+age_and_driving_table <- table(all_data$`What is your age range?`, all_data$`Do you drive?`)
+mosaicplot(age_and_driving_table, las = 1, shade=TRUE, main="Participants by Age and Driving")
+
+age_and_car_table <- table(all_data$`What is your age range?`, all_data$`Do you own or have access to a car?`)
+mosaicplot(age_and_car_table, las = 1, shade=TRUE, main="Participants by Age and Car Ownership")
+
+disability_and_driving_table <- table(all_data$`Disabled Community?`, all_data$`Do you drive?`)
+mosaicplot(disability_and_driving_table, las = 1, shade=TRUE, main="Participants by Disability and Driving")
+
+disability_and_car_table <- table(all_data$`Disabled Community?`, all_data$`Do you own or have access to a car?`)
+mosaicplot(disability_and_driving_table, las = 1, shade=TRUE, main="Participants by Disability and Car Ownership")
+
+chisq.test(race_and_driving_table)
+chisq.test(race_and_car_table)
+chisq.test(age_and_driving_table)
+chisq.test(age_and_car_table)
+chisq.test(disability_and_driving_table)
+chisq.test(disability_and_car_table)
+```
+
+
+#### Mosaic Plots on Age versus Disability, LGBTQ+ Community Membership
+```{r}
+
+age_and_disability_table <- table(all_data$`What is your age range?`, all_data$`Disabled Community?`)
+mosaicplot(age_and_disability_table, las = 1, shade=TRUE, main="Participants by Disability Community and Age")
+
+chisq.test(age_and_disability_table)
+
+age_and_disability_table <- table(all_data$`What is your age range?`, all_data$`LGBTQ+ Community?`)
+mosaicplot(age_and_disability_table, las = 1, shade=TRUE, main="Participants by LGBTQ+ Community and Age")
+
+chisq.test(age_and_disability_table)
+
+
+
+```
+
+#### Some Word Cloud Visualizations
+```{r}
+# Some issues, words with different meanings (for example, park like the place versus the verb)
+data(stop_words)
+
+comparison_cloud <- function (variable) {
+    responses <- all_data %>% select(`ID Number`, `Disabled Community?`,  variable)
+    words <- responses %>% unnest_tokens(word, variable) 
+    words <- words %>% filter(!(word %in% stop_words$word))
+    
+    words_disabled_community <- words %>% filter(`Disabled Community?` == "Yes")
+    words_not_disabled_community <- words %>% filter(`Disabled Community?` == "No")
+  
+    
+    tdm_both <- TermDocumentMatrix(c(words_disabled_community$word, words_not_disabled_community$word), control = list(stemming = TRUE, stopwords = TRUE))
+    
+    
+    tdm_both <- as.matrix(tdm_both)
+    tdm_yes_sum <- rowSums(tdm_both[,1:nrow(words_disabled_community)])
+    tdm_no_sum <- rowSums(tdm_both[,nrow(words_disabled_community):(nrow(words_disabled_community)+nrow(words_not_disabled_community))])
+    
+    tdm_both_sum <- cbind(tdm_yes_sum, tdm_no_sum)
+    colnames(tdm_both_sum) <- c("Disabled Community - Yes", "Disabled Community - No")
+    
+    comparison.cloud(tdm_both_sum, random.order = FALSE,
+                     colors = c("black", "red"), max.words = 100, scale=c(2.2, 0.44))
+    commonality.cloud(tdm_both_sum, random.order = FALSE,
+                 colors = brewer.pal(8, "Dark2"), max.words = 100)
+
+}
+
+
+comparison_cloud("Places / Features / Activities")
+comparison_cloud("First names & Relationship")
+
+```
+
+```{r}
+comparison_cloud("Are there other ways infrastructure changes in the city have impacted your social life?")
+```
+
+
+```{r}
+comparison_cloud("Has the city changed in a way that has made it easier for you to spend time with the people in your life?")
+```
+```{r}
+comparison_cloud("Please consider some changes to the city that have been made. Has the city changed in a way that has made it harder for you to spend time with the people in your life?")
+
+```
+
+```{r}
+comparison_cloud("Do you know anyone who has voiced an opinion or expressed some feelings about how they may or may not have places to go with others? Who was it and what have they said?")
+
+```
+
+#### Charts of POI Counts by Demographics
+```{r}
+all_data_counts <- all_data %>%
+  mutate(relationships_count = lengths(strsplit(`First names & Relationship`, split=",")), poi_count = lengths(strsplit(`Places / Features / Activities`, split=","))) 
+
+all_data_counts %>% 
+  ggplot(aes(x=relationships_count, y=poi_count, color=`Disabled Community?`)) +
+  geom_point()
+
+all_data_counts %>% 
+  ggplot(aes(x=relationships_count, y=poi_count, color=`Do you own or have access to a car?`)) +
+  geom_point()
+
+all_data_counts %>% 
+  ggplot(aes(x=relationships_count, y=poi_count, color=`Do you drive?`)) +
+  geom_point()
+
+all_data_counts %>% 
+  ggplot(aes(x=relationships_count, y=poi_count, color=`What is your age range?`)) +
+  geom_point()
+
+all_data_counts %>% 
+  ggplot(aes(x=relationships_count, y=poi_count, color=`What race/ethnicity do you identify with?`)) +
+  geom_point()
+
+
+count_by_demographic <- function (demographic) 
+{
+  all_data_counts %>% 
+    group_by(across(all_of(demographic))) %>%
+    summarize(avg_relationships = mean(relationships_count), avg_poi = mean(poi_count))
+}
+
+
+by_disability_community <- count_by_demographic(c("Disabled Community?")) 
+by_disability_community %>%
+   ggplot(aes(x=`Disabled Community?`, y=avg_poi, fill=avg_relationships)) +
+   geom_bar(stat='identity') +
+   labs(title = "POI Count by Disability Community Membership")
+
+by_car_ownership <- count_by_demographic(c("Do you own or have access to a car?")) 
+by_car_ownership %>%
+   ggplot(aes(x=`Do you own or have access to a car?`, y=avg_poi, fill=avg_relationships)) +
+   geom_bar(stat='identity') +
+   labs(title = "POI Count by Car Ownership")
+
+
+by_driving <- count_by_demographic(c("Do you drive?")) 
+by_driving %>%
+   ggplot(aes(x=`Do you drive?`, y=avg_poi, fill=avg_relationships)) +
+   geom_bar(stat='identity') +
+   labs(title = "POI Count by Driving")
+
+
+by_race <- count_by_demographic(c("What race/ethnicity do you identify with?")) 
+by_race %>%
+   ggplot(aes(x=`What race/ethnicity do you identify with?`, y=avg_poi, fill=avg_relationships)) +
+   geom_bar(stat='identity') +
+   labs(title = "POI Count by Race")
+
+by_age <- count_by_demographic(c("What is your age range?")) 
+by_age %>%
+   ggplot(aes(x=`What is your age range?`, y=avg_poi, fill=avg_relationships)) +
+   geom_bar(stat='identity') +
+   labs(title = "POI Count by Age")
+
+```
+
