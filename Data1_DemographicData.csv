@@ -1,0 +1,76 @@
+Timestamp,ID Number,City,State,Cross Street,Accuracy,Latitude,Longitude,How long have you lived at your residence?,How long have you lived in Savannah?,Do you own or have access to a car? ,Do you drive?,How many people live in your home with you?,HHSize,What is your age range?,What gender do you identify with?,What race/ethnicity do you identify with?,Disabled Community?,LGBTQ+ Community?
+8/22/2023 12:21,10025,Savannah,Georgia,Montgomery crossroads & Abercorn,intersection,31.999405,-81.12715497,10 years,41 years,No,No,Herself,1,36-50,Female,Black / African American,Yes,No
+8/22/2023 12:50,10028,Savannah,Georgia,"512 Abercorn St, Savannah, Ga 31404 Gaston & Huntington",Rooftop,32.06922919,-81.09308957,12 years,17 years,Yes,Yes,"2 people, self and mother",2,66-80,Female,Other,Yes,No
+9/26/2023 0:14,10029,Savannah,Georgia,Reynolds & washington ave,Cross Streets,32.04723269,-81.09455079,10 years,15 years,Yes,Yes,self,1,36-50,Female,White,No,No
+7/12/2023 11:50,10038,Savannah,Georgia,917 Bubbedge St,Rooftop,32.07071874,-81.12090341,22 years,30 years,Yes,Yes,"3 others. Grandmother, mother and son",4,26-35,Female,Black / African American,No,No
+8/22/2023 13:27,10039,Savannah,Georgia,7345 Grant St,Rooftop,31.9909384,-81.07350358,2 years ,6 years,Yes,Yes,3 adult children,4,51-65,Female,Black / African American,No,No
+9/19/2023 13:50,10040,Savannah,Georgia,"208 Ford avenue, Savannah, GA- Ogeechee rd.",Street Centroid,31.99561788,-81.27039667,17 years,64 years,Yes,Yes,just self,1,51-65,Female,Black / African American,Yes,No
+8/16/2023 13:40,10041,Savannah,Georgia,Johnny Mercer Boulevard,Street Centroid,32.0316326,-80.97234084,3 years,14 years,Yes,Yes,Son,2,26-35,Female,White,No,No
+9/19/2023 14:45,10042,Savannah,Georgia,Park & Harmon,Street Centroid,32.06113701,-81.08327897,6.5 years,6.5 years,Yes,Yes,self,1,36-50,Female,Other,Yes,Yes
+7/18/2023 11:54,10043,Savannah,Georgia,"Skylark Road, John Carter",Street Centroid,32.09000967,-81.34880318,1 year ,56 years,Yes,Yes,"2, herself and husband",2,51-65,Female,Black / African American,No,No
+7/12/2023 10:43,10044,Savannah,Georgia,313 West Hall Steet,intersection,32.0691768,-81.09985117,2 years,2 years,Yes,Yes,"1, Just her",1,26-35,Female,White,No,No
+9/25/2023 20:11,10045,Savannah,Georgia,Beckman Ave & Whitefield ,intersection,31.9778957,-81.10587969,1 year,2 years,Yes,Yes,"3 others, wife and two children",4,26-35,Female,White,No,Yes
+9/25/2023 20:23,10046,Savannah,Georgia,Corner of Mall blvd close to Oglethorpe drive,intersection,32.00156732,-81.11061568,15 years,50 years,Yes,Yes,just self,1,66-80,Female,Black / African American,No,No
+8/7/2023 10:59,10048,Savannah,Georgia,102 Truetlen court,Rooftop,31.93873754,-81.04355991,2 years ,2 years,Yes,Yes,"5 others, Boyfriend, his mom, his dad, and two siblings",6,26-35,Female,Black / African American,No,No
+8/16/2023 20:23,10049,Savannah,Georgia,37 Waters ave,Rooftop,32.04098845,-81.08803696,1.5 years,11 years,Yes,Yes,Her and her husband,2,26-35,Female,White,No,No
+8/8/2023 15:22,10050,Savannah,Georgia,37 Moonlight trail,intersection,32.21222861,-81.17963624,3 years,3 years,Yes,Yes,"3, fiance and son",3,36-50,Female,Black / African American,No,Yes
+8/9/2023 10:21,10051,Savannah,Georgia,Montgomery st,Street Centroid,32.06089994,-81.10342961,15 years,27 years,No,Yes,1,1,36-50,Male,Black / African American,Yes,No
+8/9/2023 10:35,10052,Savannah,Georgia,Montgomery st,Rooftop,32.06089994,-81.10342961,0.33 years,0.33 years,Yes,No,"3, cousin and her son",4,51-65,Male,Black / African American,No,No
+8/9/2023 10:56,10053,Savannah,Georgia,W Gwinnett,Street Centroid,32.07674839,-81.12661291,3 years,31 Years,Yes,Yes,"5, 4 kids",5,26-35,Female,Black / African American,No,No
+8/9/2023 11:02,10054,Savannah,Georgia,Augusta Ave,Street Centroid,32.08465404,-81.12110175,.5 years,31 years,Yes,Yes,1,1,26-35,Female,Black / African American,No,No
+8/9/2023 11:15,10055,Savannah,Georgia,Chevy chase & delano,Street Centroid,32.06602701,-81.12912002,2 years,33 years,Yes,Yes,"3 grandmother, aunt, and a child",4,26-35,Male,Black / African American,No,No
+8/15/2023 11:32,10056,Savannah,Georgia,Habersham & Abercorn,intersection,32.03706268,-81.10125988,13 years,33 years,Yes,Yes,her and her child,2,51-65,Female,White,Yes,No
+8/15/2023 11:56,10057,Savannah,Georgia,77 lake star blvd,intersection,31.94154335,-81.05075981,3 years ,50 years ,Yes,Yes,"4, Herself & 3 children",4,36-50,Female,Black / African American,Yes,No
+8/15/2023 13:00,10058,Savannah,Georgia,"105 Sebring Place, Savannah, GA 31404",intersection,32.05184018,-81.06857192,3 years ,31 years,Yes,Yes,"4 others, her children ",5,26-35,Female,Black / African American,No,No
+8/16/2023 10:22,10059,Savannah,Georgia,3720 Old louisville rd,intersection,32.09069265,-81.15683981,1 year,13 years,Yes,Yes,"2 grandsons, daughter, husband and son",6,36-50,Female,Black / African American,Yes,No
+8/16/2023 11:16,10060,Savannah,Georgia,"Rivers end, cross street is Hurst Ave",Rooftop,31.99159256,-81.1119789,10 years,20 years,Yes,Yes,"2 others, son and husband ",3,36-50,Female,White,No,No
+9/25/2023 20:35,10061,Savannah,Georgia,"516 Montgomery st, Derenne Ave",Rooftop,32.07110972,-81.09954785,49 years,53 years,Yes,Yes,self,1,51-65,Female,Black / African American,Yes,No
+9/25/2023 23:11,10062,Savannah,Georgia,Mall Blvd,intersection,32.00156732,-81.11061568,8 years,8 years,Yes,Yes,self & husband,2,66-80,Female,White,No,No
+9/25/2023 23:24,10063,Savannah,Georgia,Montgomery Crossroads,Rooftop,31.99671328,-81.11634818,3 years,6 years,Yes,Yes,self & husband,2,36-50,Female,Other,No,No
+8/17/2023 12:32,10064,Savannah,Georgia,Fair st,Rooftop,32.085778,-81.14022751,9 years,34 years,Yes,Yes,"3 all together, her and her sons",3,26-35,Female,Black / African American,No,No
+8/17/2023 14:17,10065,Savannah,Georgia,Bay street,intersection,32.09534916,-81.13699802,7 years,30 years,Yes,Yes,just him,1,26-35,Male,Black / African American,No,No
+8/17/2023 14:37,10066,Savannah,Georgia,Tuten,intersection,32.12134647,-81.15228177,52 Years,52 years,Yes,Yes,"2, her and her son",2,51-65,Female,Black / African American,No,No
+8/17/2023 15:02,10067,Savannah,Georgia,West Bay st & Caroline st,Street Centroid,32.09534916,-81.13699802,.75 years,3 years,Yes,Yes,just 1,1,51-65,Male,Black / African American,Yes,No
+8/17/2023 15:33,10068,Savannah,Georgia,Waters & Seiler,Rooftop,32.052154,-81.08391097,4 years,30 years,Yes,Yes,"5 including herself, 3 kids and 1 grandchild",5,51-65,Female,Black / African American,Yes,No
+9/25/2023 21:28,10069,Savannah,Georgia,55th street corner of 45th & Georgia,intersection,32.04222221,-81.10056009,10 years,40 years,Yes,Yes,self and two chidren,3,66-80,Male,White,No,No
+8/17/2023 16:20,10070,Savannah,Georgia,Abercorn st & Louis Drive,intersection,31.993256,-81.12932001,8 years,46 years,Yes,Yes,Just her,1,36-50,Female,Black / African American,Yes,No
+9/26/2023 0:31,10071,Savannah,Georgia,Oak Forest Drive & Laroche,intersection,32.01800399,-81.06705597,2 years,27 years,Yes,Yes,self and partner,2,26-35,Female,Black / African American,No,No
+9/25/2023 23:40,10072,Savannah,Georgia,9 reid Court,Rooftop,32.06603384,-81.07907956,2 years,3 years,Yes,Yes,Self and daughter,2,36-50,Female,Black / African American,No,No
+9/25/2023 21:14,10073,Savannah,Georgia,304 Chatham Villa Drive,Rooftop,32.10278568,-81.15845341,26 years,30 years,Yes,Yes,Self and 1 friend,2,66-80,Female,Other,Yes,No
+9/25/2023 23:59,10074,Savannah,Georgia,Anderson & Broad,intersection,32.060524,-81.09091204,2 years,2 years ,Yes,Yes,"3 others, wife and two kids",4,36-50,Female,White,Yes,Yes
+8/24/2023 15:22,10075,Savannah,Georgia,Montgomery & Derenne,Street Centroid,32.030079,-81.115267,40 years,28 years,Yes,Yes,2 self & mother,2,51-65,Male,Black / African American,Yes,No
+8/24/2023 15:55,10076,Savannah,Georgia,2140 Alaska Ave,Street Centroid,32.05542487,-81.05892058,5 years,49 years,No,Yes,"3 total, Wife & Daughter",3,36-50,Male,Black / African American,No,No
+9/26/2023 1:38,10077,Savannah,Georgia,MLK & Montgomery,Rooftop,31.99671328,-81.11634818,.5 years,1 year,No,Yes,1,1,51-65,Male,Black / African American,Yes,No
+8/24/2023 16:09,10078,Savannah,Georgia,"2140 Alaska St, Savannah Ga 31404",intersection,32.05542487,-81.05892058,6 years,56 years,No,Yes,"2 others, husband & Daughter",3,51-65,Female,Black / African American,No,Yes
+8/24/2023 16:29,10079,Savannah,Georgia,MLK & Gaston,intersection,32.07161598,-81.10056103,1 year,4 years,Yes,Yes,self,1,36-50,Male,Black / African American,No,No
+9/19/2023 13:00,10080,Savannah,Georgia,East 32nd & Price,intersection,32.05960501,-81.09336299,5 years,11 years,No,Yes,Just them and their partner,2,26-35,Non-Binary,White,Yes,Yes
+9/19/2023 13:13,10081,Savannah,Georgia,Victory Drive,intersection,32.04994535,-81.09202886,3 years,7 years,No,Yes,just self,1,51-65,Male,Other,No,No
+9/26/2023 11:25,10082,Savannah,Georgia,Whitaker & Bull,intersection,32.08046599,-81.092329,15 years ,60 years,Yes,Yes,"2 others, son & Nephew",3,51-65,Female,Black / African American,No,No
+9/26/2023 13:31,10083,Savannah,Georgia,St. Ives & King George Blvd,intersection,31.97677399,-81.22736297,7 years,10 years,Yes,Yes,"2 others, her children ",3,26-35,Female,Black / African American,No,No
+9/27/2023 13:28,10084,Savannah,Georgia,930 Hancock St. Alta st is the cross section,Rooftop,32.04311919,-81.12304029,13 years ,42 years,Yes,Yes,herself and father,2,51-65,Female,Black / African American,No,No
+9/28/2023 9:25,10085,Savannah,Georgia,Quincy & Liberty Parkway,intersection,32.04689498,-81.13832997,.16 years,5 years,Yes,Yes,"4 including herself, partner & two children",4,26-35,Female,White,No,No
+9/28/2023 9:27,10086,Savannah,Georgia,2212 Weldon St.,Rooftop,32.09366462,-81.12497903,4 years,25 years,Yes,Yes,1 other person,2,26-35,Female,Black / African American,No,No
+9/28/2023 13:49,10087,Savannah,Georgia,Ogeechee & Gerrard,intersection,32.05042295,-81.1557058,20 years,54 years,Yes,Yes,2 including self ,2,51-65,Female,Black / African American,No,No
+9/28/2023 13:59,10088,Savannah,Georgia,204 King George Blvd,Rooftop,31.98234813,-81.22403075,12 years,44 years ,Yes,Yes,self,1,36-50,Female,Black / African American,No,No
+9/28/2023 14:18,10089,Savannah,Georgia,Gerrard Ave,Street Centroid,32.03074406,-81.16026008,.5 years,42 years,Yes,Yes,"2 including self, Friend",2,36-50,Female,White,No,No
+9/28/2023 14:29,10090,Savannah,Georgia,Pennsylvania Ave & Ohio ,intersection,32.04912729,-81.06465933,12 years,57 Years,Yes,Yes,Self,1,51-65,Female,Black / African American,Yes,No
+9/28/2023 14:49,10091,Savannah,Georgia,9611 Middle Ground Road,Rooftop,31.99824621,-81.14736659,1 year ,30 years,No,No,Self,1,51-65,Female,Other,Yes,No
+9/28/2023 15:00,10092,Savannah,Georgia,Hwy 17,Street Centroid,32.0065636,-81.24023217,2 years,19 years,No,Yes,5,5,36-50,Female,Other,No,No
+9/28/2023 16:55,10093,Savannah,Georgia,367 West Bryan St.,Rooftop,32.08126706,-81.0956445,3 years,32 years,No,No,"4 others, children and boyfriend",5,26-35,Female,Black / African American,No,No
+10/19/2023 12:39,10094,Savannah,Georgia,2227 Florida Ave,Rooftop,32.05244866,-81.05691135,44 years,5 years,No,No,"2, her and her dad",4,51-65,Female,Black / African American,Yes,No
+10/19/2023 12:39,10095,Savannah,Georgia,1319 southeast 36th street ,Rooftop,32.05209231,-81.0788633,2.5 years ,2.5 years,Yes,Yes,3 including him. 2 others,3,26-35,Male,Black / African American,No,No
+10/19/2023 12:47,10096,Savannah,Georgia,632 Yamacraw Village,Rooftop,32.08213464,-81.09984472,7 years,39 years,Yes,Yes,self and two children,3,36-50,Female,Black / African American,No,No
+10/19/2023 12:51,10097,Savannah,Georgia,Chatham parkway & ogeechee rd,intersection,32.04835431,-81.16556889,3 years,46 years,Yes,Yes,self & son,2,36-50,Female,Black / African American,No,No
+10/19/2023 12:57,10098,Savannah,Georgia,Augusta Rd,Street Centroid,32.11372299,-81.16382216,24 years,26 years,Yes,Yes,"2, self and spouse ",2,26-35,Female,Black / African American,No,No
+10/19/2023 13:03,10099,Savannah,Georgia,Alfred St,Street Centroid,32.09016617,-81.14280079,1 Year,31 years,Yes,Yes,"4, self and 3 kids",4,26-35,Female,Black / African American,No,No
+10/19/2023 13:10,10100,Savannah,Georgia,333 Big Hill Rd.,Rooftop,32.11437098,-81.17497708,25 years,25 years,Yes,Yes,Self,1,51-65,Female,Black / African American,No,No
+10/19/2023 13:23,10101,Savannah,Georgia,Lathrop Ave,Street Centroid,32.09606596,-81.11526875,20 years,25 years,Yes,Yes,Self,1,66-80,Female,Black / African American,No,No
+10/19/2023 13:29,10102,Savannah,Georgia,Bay St.,Street Centroid,32.09534916,-81.13699802,60 years,60 years,Yes,Yes,self & daughter,2,66-80,Female,Black / African American,No,No
+10/19/2023 13:37,10103,Savannah,Georgia,ACL Blvd,Street Centroid,32.02735255,-81.15300851,36 years,36 years,Yes,Yes,Self,1,66-80,Female,Black / African American,No,No
+10/19/2023 13:48,10104,Savannah,Georgia,Abercorn St.,Street Centroid,31.99268519,-81.23017721,.5 years,30 years,Yes,Yes,Self,1,51-65,Female,Black / African American,No,No
+10/19/2023 13:54,10105,Savannah,Georgia,Taylor st,Street Centroid,32.07236393,-81.09735355,2 years,76 years,No,No,self,1,66-80,Female,Black / African American,Yes,No
+10/19/2023 14:01,10106,Savannah,Georgia,4201 Rockdale Ave,Rooftop,32.04814435,-81.13131046,51 years,51 years,Yes,Yes,Self,1,66-80,Female,Black / African American,Yes,No
+10/19/2023 14:07,10107,Savannah,Georgia,1915 Green St.,Rooftop,32.11537647,-81.13695024,4 Years,66 Years,Yes,Yes,"4 , self, wife, son, daughter",4,66-80,Male,Black / African American,Yes,No
+10/19/2023 14:15,10108,Savannah,Georgia,Willow Lake Court,Street Centroid,32.04743755,-81.25604768,10 years,20 years,Yes,Yes,Self ,1,51-65,Female,Black / African American,No,No
+10/19/2023 14:22,10109,Savannah,Georgia,1460 Chevy Chase Rd. ,Rooftop,32.06468473,-81.12372358,50 years ,56 years,Yes,Yes,"3 people, self, Dorothy and Jerry",3,51-65,Female,Black / African American,No,No
+10/19/2023 14:29,10110,Savannah,Georgia,Spring Hill st.,Street Centroid,32.03132,-81.07983,23 years,57 years ,Yes,Yes,Self and spouse,2,51-65,Female,Black / African American,No,No
